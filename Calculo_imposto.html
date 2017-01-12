@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>Cálculo Imposto</title>
+	<style>
+		.field
+		{
+			font-size: 14pt;
+			font-weight: bold;
+		}
+		#div_total
+		{
+			font-size: 14pt;
+			font-weight: bold;
+			margin: 10px 0px;
+		}
+	</style>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+</head>
+<body>
+<h1>Imposto a pagar:</h1>
+<form method="post" action="">
+	<p><span class="field">Lucro R$</span> <input type="text" id="input_total"/></p>
+	<p><span class="field">Tributação:</span><br/>
+		<input type="radio" id="simples_nacional" checked="checked" name="pagamento" value="0.05"/>Simples Nacional - 5% do lucro<br/>
+		<input type="radio" id="lucro_real" name="pagamento" value="0.12"/>Lucro Real - 12% do lucro<br/>
+		<input type="radio" id="lucro_pressumido" name="pagamento" value="0.17"/>Lucro Pressumido - 17% do lucro<br/>
+		<button id="botao_calcular">Imposto</button>
+	</p>
+	<p><span class="field">Imposto a pagar</span> <input type="text" disabled="disabled" id="output_total"/></p>
+</form>
+<button id="botao_total">Total de Imposto</button>
+<button id="botao_limpar">Limpar</button>
+<button id="botao_apagar_storage">Apagar storage</button>
+<div id="div_total"></div>
+
+<script>
+//Solução com JQuery
+    
+$(function()
+{
+	// Cursor no campo texto.
+	$("#input_total").focus();
+
+	// Clique do botão 'Calcular'.
+	$("#botao_calcular").click(function()
+	{
+		// Seleciona o desconto a ser aplicado, convertendo string para float. O valor do desconto está definido na propriedade value de cada input radio (no HTML).
+		var imposto = 0;
+		if ($("#simples_nacional").prop("checked"))
+		{
+			imposto = parseFloat($("#simples_nacional").val());
+		}
+		else if ($("#lucro_real").prop("checked"))
+		{
+			imposto = parseFloat($("#lucro_real").val());
+		}
+		else if ($("#lucro_pressumido").prop("checked"))
+		{
+			imposto = parseFloat($("#lucro_pressumido").val());
+		}
+		
+		// Calcula o valor a pagar, convertendo o valor digitado pelo usuário (string) para float.
+		var valorAPagar = parseFloat($("#input_total").val()) * imposto;
+		
+		// Caso o valor seja inválido, mostra mensagem no campo texto.
+		if (isNaN(valorAPagar))
+		{
+			$("#output_total").val("Valor inválido!");
+		}
+		else
+		{
+			// Mostra valor a pagar no campo texto.
+			$("#output_total").val(valorAPagar);
+			
+			// Obtém total acumulado (convertendo para float) do localStorage.
+			var total = parseFloat(localStorage.getItem("total_do_dia"));
+			
+			// Caso o valor seja inválido, assume que não há¡ nada salvo no localStorage.
+			if (isNaN(total))
+			{
+				console.log("Nao tem localStorage.");
+				total = 0;
+			}
+
+			// Acumula valor a pagar.
+			total += valorAPagar;
+			
+			// Arredondamento de float para usar apenas dois digitos decimais.
+			total = Math.round(total * 100) / 100;
+			
+			// Salva novo valor acumulado no localStorage.
+			localStorage.setItem("total_do_dia", total);
+			console.log("Total salvo no localStorage: " + total);
+		}
+
+		// Limpa a div abaixo do último botão.
+		$("#div_total").html("");
+		
+		return false;
+	});
+	
+	// Clique do botão 'Total do Dia'.
+	$("#botao_total").click(function()
+	{
+		// Obtém total acumulado (convertendo para float) do localStorage.
+		var total = parseFloat(localStorage.getItem("total_do_dia"));
+		
+		// Caso o valor seja inválido ou zero, assume que não há nada salvo no localStorage.
+		if (isNaN(total) || total === 0)
+		{
+			// Altera cor de fundo e texto da div e mostra 'Nada a pagar' na div.
+			$("#div_total").css("background-color", "red");
+			$("#div_total").css("color", "yellow");
+			$("#div_total").html("Nada a pagar");
+		}
+		else 
+		{
+			// Altera cor de fundo e texto da div e mostra valor acumulado na div.
+			$("#div_total").css("background-color", "white");
+			$("#div_total").css("color", "black");
+			$("#div_total").html("Total a pagar: R$" + total);
+		}
+	});
+
+	$("#botao_limpar").click(function()
+	{
+		$("#input_total").val("");
+		$("#output_total").val("");
+		$("#input_total").focus();
+		$("#div_total").html("");
+	});
+
+	$("#botao_apagar_storage").click(function()
+	{
+		localStorage.removeItem("total_do_dia");
+	});
+});
+</script>
+</body>
+</html>
